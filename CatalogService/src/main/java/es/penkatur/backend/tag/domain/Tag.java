@@ -1,4 +1,4 @@
-package es.penkatur.backend.domain.tag;
+package es.penkatur.backend.tag.domain;
 
 import lombok.Builder;
 import lombok.Getter;

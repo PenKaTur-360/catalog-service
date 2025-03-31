@@ -1,6 +1,6 @@
-package es.penkatur.backend.api.tag;
+package es.penkatur.backend.tag.api;
 
-import es.penkatur.backend.api.tag.dto.TagDTO;
+import es.penkatur.backend.tag.api.dto.TagDTO;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.*;

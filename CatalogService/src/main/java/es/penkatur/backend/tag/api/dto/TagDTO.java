@@ -1,6 +1,6 @@
-package es.penkatur.backend.api.tag.dto;
+package es.penkatur.backend.tag.api.dto;
 
-import es.penkatur.backend.domain.tag.Tag;
+import es.penkatur.backend.tag.domain.Tag;
 import jakarta.json.bind.annotation.JsonbProperty;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 

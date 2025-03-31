@@ -1,6 +1,6 @@
-package es.penkatur.backend.application.tag;
+package es.penkatur.backend.tag.application;
 
-import es.penkatur.backend.domain.tag.Tag;
+import es.penkatur.backend.tag.domain.Tag;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
