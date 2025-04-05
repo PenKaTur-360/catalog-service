@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public interface TagRepository {
-    Multi<Tag> findAll(Instant updatedAt);
+    Multi<Tag> findAllByUpdatedAtAfter(Instant updatedAt);
 
     Uni<Tag> findById(UUID id);
 

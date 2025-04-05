@@ -28,7 +28,7 @@ public class TagResource implements TagApi {
 
     @Override
     public Multi<TagDTO> listAllTags(Instant updatedAt) {
-        return service.findAllTags(updatedAt)
+        return service.findAllTagsByUpdatedAtAfter(updatedAt)
                 .map(TagDTO::from)
                 .onCompletion().ifEmpty().failWith(() -> {
                     logger.info("No se encontraron etiquetas que coincidan con los criterios");

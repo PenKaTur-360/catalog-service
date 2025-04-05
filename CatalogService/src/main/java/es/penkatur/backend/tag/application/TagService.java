@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public interface TagService {
-    Multi<Tag> findAllTags(Instant updatedAt);
+    Multi<Tag> findAllTagsByUpdatedAtAfter(Instant updatedAt);
 
     Uni<Tag> findTagById(UUID id);
 }

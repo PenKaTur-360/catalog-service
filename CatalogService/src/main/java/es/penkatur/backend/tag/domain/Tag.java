@@ -41,7 +41,8 @@ public class Tag {
     public void changeUpdatedAt(Instant updatedAt) {
         if (updatedAt == null)
             throw new IllegalArgumentException("Update date cannot be null");
-        if (createdAt != null && updatedAt.isBefore(createdAt))
+        if (createdAt == null) createdAt = updatedAt.truncatedTo(ChronoUnit.SECONDS);
+        if (updatedAt.isBefore(createdAt))
             throw new IllegalArgumentException("The 'updatedAt' date cannot be earlier than the 'createdAt' date");
         if (this.updatedAt != null && updatedAt.isBefore(this.updatedAt))
             throw new IllegalArgumentException(

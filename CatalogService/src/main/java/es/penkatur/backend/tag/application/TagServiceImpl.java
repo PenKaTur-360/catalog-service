@@ -1,6 +1,7 @@
 package es.penkatur.backend.tag.application;
 
 import es.penkatur.backend.tag.domain.Tag;
+import es.penkatur.backend.tag.domain.TagRepository;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,37 +17,25 @@ public class TagServiceImpl implements TagService {
 
     private final Logger logger;
 
+    private final TagRepository repository;
+
     @Inject
-    public TagServiceImpl(Logger logger) {
+    public TagServiceImpl(Logger logger, TagRepository repository) {
+        this.repository = repository;
         this.logger = logger;
     }
 
     @Override
-    public Multi<Tag> findAllTags(Instant updatedAt) {
+    public Multi<Tag> findAllTagsByUpdatedAtAfter(Instant updatedAt) {
         var timestamp = Optional.ofNullable(updatedAt)
                 .orElse(Instant.MIN);
         logger.debug("Find a list of tags from " + timestamp.toString());
-
-        var tag = Tag.builder()
-                .id(UUID.randomUUID())
-                .name("test")
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
-
-        return Multi.createFrom().item(tag);
+        return repository.findAllByUpdatedAtAfter(timestamp);
     }
 
     @Override
     public Uni<Tag> findTagById(UUID id) {
         logger.debug("Buscando etiqueta con ID: " + id);
-
-        var tag = Tag.builder()
-                .id(id)
-                .name("test")
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
-        return Uni.createFrom().item(tag);
+        return repository.findById(id);
     }
 }
