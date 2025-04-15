@@ -1,5 +1,6 @@
 package es.penkatur.backend.tag.domain;
 
+import es.penkatur.backend.sharedkernel.domain.UUIDBaseModel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 @Builder
 @Getter
-public class Tag {
+public class Tag implements UUIDBaseModel {
 
     @NonNull
     private UUID id;
@@ -38,6 +39,7 @@ public class Tag {
         this.color = color;
     }
 
+    @Override
     public void changeUpdatedAt(Instant updatedAt) {
         if (updatedAt == null)
             throw new IllegalArgumentException("Update date cannot be null");

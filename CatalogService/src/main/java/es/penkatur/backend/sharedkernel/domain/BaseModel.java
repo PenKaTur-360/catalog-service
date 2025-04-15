@@ -1,4 +1,4 @@
-package es.penkatur.backend.common.domain;
+package es.penkatur.backend.sharedkernel.domain;
 
 import java.time.Instant;
 

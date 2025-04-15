@@ -1,6 +1,6 @@
 package es.penkatur.backend.catalog.domain;
 
-import es.penkatur.backend.common.domain.UUIDBaseModel;
+import es.penkatur.backend.sharedkernel.domain.UUIDBaseModel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
