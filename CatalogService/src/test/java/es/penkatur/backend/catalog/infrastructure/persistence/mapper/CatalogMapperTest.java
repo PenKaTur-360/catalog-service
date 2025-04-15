@@ -21,7 +21,7 @@ class CatalogMapperTest {
                 .key("catalog-key")
                 .name("catalog-name")
                 .author("catalog-author")
-                .version("catalog-version")
+                .version("1.0.0-SNAPSHOT")
                 .url("catalog-url")
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -37,7 +37,7 @@ class CatalogMapperTest {
         entity.setKey("entity-catalog-key");
         entity.setName("entity-catalog-name");
         entity.setAuthor("entity-catalog-author");
-        entity.setVersion("entity-catalog-version");
+        entity.setVersion("1.0.0-SNAPSHOT");
         entity.setUrl("entity-catalog-url");
         entity.setCreatedAt(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         entity.setUpdatedAt(Instant.now().truncatedTo(ChronoUnit.SECONDS));
