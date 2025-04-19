@@ -2,6 +2,7 @@ package es.penkatur.backend.catalog.infrastructure.persistence;
 
 import es.penkatur.backend.catalog.domain.Catalog;
 import es.penkatur.backend.catalog.domain.CatalogRepository;
+import es.penkatur.backend.catalog.infrastructure.exceptions.CatalogNotFoundException;
 import es.penkatur.backend.catalog.infrastructure.persistence.mapper.CatalogMapper;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,13 +36,13 @@ public class CatalogRepositoryImpl implements CatalogRepository {
     @Override
     public Uni<Catalog> findById(UUID id) {
         return repository.findById(id)
+                .onItem().ifNull().failWith(() -> new CatalogNotFoundException(id))
                 .map(entity -> entity != null ? CatalogMapper.toDomain(entity) : null);
     }
 
     @Override
     public Uni<Catalog> save(Catalog catalog) {
         var swCreate = catalog.getCreatedAt() == null;
-        catalog.changeUpdatedAt(Instant.now());
         var entity = CatalogMapper.toEntity(catalog);
 
         if (swCreate) return repository.persist(entity).map(CatalogMapper::toDomain);

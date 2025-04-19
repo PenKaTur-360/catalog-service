@@ -8,6 +8,4 @@ public interface BaseModel<ID> {
     Instant getCreatedAt();
 
     Instant getUpdatedAt();
-
-    void changeUpdatedAt(Instant updatedAt);
 }

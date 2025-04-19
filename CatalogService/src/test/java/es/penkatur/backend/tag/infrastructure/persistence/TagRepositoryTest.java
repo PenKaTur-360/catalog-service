@@ -1,6 +1,6 @@
 package es.penkatur.backend.tag.infrastructure.persistence;
 
-import es.penkatur.backend.common.infrastructure.persistence.PostgresContainerTestProfile;
+import es.penkatur.backend.sharedkernel.infrastructure.persistence.PostgresContainerTestProfile;
 import es.penkatur.backend.tag.domain.Tag;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
@@ -15,8 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static io.smallrye.common.constraint.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 @TestProfile(PostgresContainerTestProfile.class)
@@ -47,8 +46,8 @@ class TagRepositoryTest {
 
         saveOrUpdateTag(tag);
         assertNotNull(tag.getId());
-        assertNotNull(tag.getCreatedAt());
-        assertNotNull(tag.getUpdatedAt());
+        assertNull(tag.getCreatedAt());
+        assertNull(tag.getUpdatedAt());
 
         var result = sessionFactory.withTransaction(session ->
                 repository.findById(tag.getId())
@@ -85,11 +84,11 @@ class TagRepositoryTest {
                 .build();
         var id = tag.getId();
 
-        saveOrUpdateTag(tag);
+        tag = saveOrUpdateTag(tag);
         Thread.sleep(Duration.of(1, ChronoUnit.SECONDS));
 
         tag.changeColor("#f00");
-        saveOrUpdateTag(tag);
+        tag = saveOrUpdateTag(tag);
 
         List<Tag> result = sessionFactory.withTransaction(session ->
                 repository.findAllByUpdatedAtAfter(Instant.now().minus(1, ChronoUnit.HOURS))
@@ -103,9 +102,10 @@ class TagRepositoryTest {
         assertEquals("#f00", tag.getColor());
     }
 
-    private void saveOrUpdateTag(Tag tag) {
-        sessionFactory.withTransaction(session ->
-                repository.save(tag)
-        ).await().indefinitely();
+    private Tag saveOrUpdateTag(Tag tag) {
+        return sessionFactory.withTransaction(session -> {
+            session.clear();
+            return repository.save(tag);
+        }).await().indefinitely();
     }
 }
