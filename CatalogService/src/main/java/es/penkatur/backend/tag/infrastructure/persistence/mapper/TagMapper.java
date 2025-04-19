@@ -20,8 +20,6 @@ public class TagMapper {
         entity.setId(tag.getId());
         entity.setName(tag.getName());
         entity.setColor(tag.getColor());
-        entity.setCreatedAt(tag.getCreatedAt());
-        entity.setUpdatedAt(tag.getUpdatedAt());
         return entity;
     }
 }

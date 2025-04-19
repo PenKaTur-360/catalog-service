@@ -1,5 +1,6 @@
 package es.penkatur.backend.catalog.infrastructure.entity;
 
+import es.penkatur.backend.sharedkernel.infrastructure.entity.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Table(name = "t_catalogs")
-public class CatalogEntity {
+public class CatalogEntity extends AuditableEntity {
     @Id
     private UUID id;
     @Column(name = "user_id", nullable = false)
@@ -27,10 +28,6 @@ public class CatalogEntity {
     private String url;
     // TODO: add ingredients
     // TODO: add meals
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
     @Column(name = "external_updated_at")
     private Instant externalUpdatedAt;
 }

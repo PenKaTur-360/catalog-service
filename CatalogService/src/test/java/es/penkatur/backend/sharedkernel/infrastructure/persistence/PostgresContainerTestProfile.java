@@ -1,4 +1,4 @@
-package es.penkatur.backend.common.infrastructure.persistence;
+package es.penkatur.backend.sharedkernel.infrastructure.persistence;
 
 import io.quarkus.test.junit.QuarkusTestProfile;
 import org.testcontainers.containers.PostgreSQLContainer;

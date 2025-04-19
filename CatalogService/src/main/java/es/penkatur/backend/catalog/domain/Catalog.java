@@ -81,19 +81,6 @@ public class Catalog implements UUIDBaseModel {
         this.url = url;
     }
 
-    @Override
-    public void changeUpdatedAt(Instant updatedAt) {
-        if (updatedAt == null)
-            throw new IllegalArgumentException("Update date cannot be null");
-        if (createdAt == null) createdAt = updatedAt.truncatedTo(ChronoUnit.SECONDS);
-        if (updatedAt.isBefore(createdAt))
-            throw new IllegalArgumentException("The 'updatedAt' date cannot be earlier than the 'createdAt' date");
-        if (this.updatedAt != null && updatedAt.isBefore(this.updatedAt))
-            throw new IllegalArgumentException(
-                    "The 'updatedAt' date cannot be earlier than the current 'updatedAt' date");
-        this.updatedAt = updatedAt.truncatedTo(ChronoUnit.SECONDS);
-    }
-
     public void changeExternalUpdatedAt(Instant externalUpdatedAt) {
         if (externalUpdatedAt == null)
             throw new IllegalArgumentException("External update date cannot be null");

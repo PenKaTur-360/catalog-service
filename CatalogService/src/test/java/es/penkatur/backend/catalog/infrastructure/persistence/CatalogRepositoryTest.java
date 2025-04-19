@@ -2,7 +2,7 @@ package es.penkatur.backend.catalog.infrastructure.persistence;
 
 import es.penkatur.backend.catalog.domain.Catalog;
 import es.penkatur.backend.catalog.domain.CatalogRepository;
-import es.penkatur.backend.common.infrastructure.persistence.PostgresContainerTestProfile;
+import es.penkatur.backend.sharedkernel.infrastructure.persistence.PostgresContainerTestProfile;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;

@@ -2,6 +2,7 @@ package es.penkatur.backend.tag.infrastructure.persistence;
 
 import es.penkatur.backend.tag.domain.Tag;
 import es.penkatur.backend.tag.domain.TagRepository;
+import es.penkatur.backend.tag.infrastructure.exceptions.TagNotFoundException;
 import es.penkatur.backend.tag.infrastructure.persistence.mapper.TagMapper;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,19 +36,19 @@ public class TagRepositoryImpl implements TagRepository {
     @Override
     public Uni<Tag> findById(UUID id) {
         return repository.findById(id)
+                .onItem().ifNull().failWith(() -> new TagNotFoundException(id))
                 .map(tag -> tag != null ? TagMapper.toDomain(tag) : null);
     }
 
     @Override
     public Uni<Tag> save(Tag tag) {
         var swCreate = tag.getCreatedAt() == null;
-        tag.changeUpdatedAt(Instant.now());
         var tagEntity = TagMapper.toEntity(tag);
 
         if (swCreate) return repository.persist(tagEntity).map(TagMapper::toDomain);
         else return repository.update(
-                        "color = ?1, name = ?2, updatedAt = ?3 where id = ?4",
-                        tagEntity.getColor(), tagEntity.getName(), tagEntity.getUpdatedAt(), tagEntity.getId()
+                        "color = ?1, name = ?2 where id = ?3",
+                        tagEntity.getColor(), tagEntity.getName(), tagEntity.getId()
                 )
                 .map(updated -> updated > 0 ? tag : null);
     }
