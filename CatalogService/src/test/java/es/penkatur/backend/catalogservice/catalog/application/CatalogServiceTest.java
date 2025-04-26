@@ -123,6 +123,6 @@ class CatalogServiceTest {
                 .name("catalog-name")
                 .author("catalog-author")
                 .version("1.0.0-SNAPSHOT")
-                .url("catalog-url");
+                .url("http://catalog-url.es");
     }
 }

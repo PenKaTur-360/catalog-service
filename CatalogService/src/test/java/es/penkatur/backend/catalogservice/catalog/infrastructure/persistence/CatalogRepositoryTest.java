@@ -148,7 +148,9 @@ class CatalogRepositoryTest {
 
         var result = find(catalog.getId());
         assertNotNull(result, "Catalog should be found by ID");
-        repository.delete(UUID.randomUUID());
+        assertThrowsExactly(CatalogNotFoundException.class,
+                () -> repository.delete(UUID.randomUUID()),
+                "Expected no catalog to be found by ID");
 
         var result2 = find(catalog.getId());
         assertNotNull(result2, "Catalog should be found by ID");

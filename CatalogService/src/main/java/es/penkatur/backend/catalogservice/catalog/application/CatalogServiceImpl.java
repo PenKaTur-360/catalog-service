@@ -3,6 +3,9 @@ package es.penkatur.backend.catalogservice.catalog.application;
 import es.penkatur.backend.catalogservice.catalog.domain.Catalog;
 import es.penkatur.backend.catalogservice.catalog.domain.CatalogRepository;
 import es.penkatur.backend.catalogservice.catalog.domain.events.CatalogEventPublisher;
+import es.penkatur.backend.catalogservice.catalog.domain.exceptions.CatalogOperationException;
+import es.penkatur.backend.catalogservice.catalog.domain.exceptions.InvalidCatalogException;
+import es.penkatur.backend.catalogservice.catalog.infraestructure.exceptions.CatalogNotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
@@ -39,43 +42,95 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     @ActivateRequestContext
     public Catalog findCatalogById(UUID id) {
+        if (id == null)
+            throw new IllegalArgumentException("ID cannot be null");
+
         logger.debugf("Searching for catalog with ID: %s", id);
         try {
             return repository.findById(id);
-        } catch (Exception e) {
-            logger.warnf("Catalog with ID %s not found", id);
+        } catch (CatalogNotFoundException e) {
+            logger.infof("Catalog with ID %s not found", id);
             return null;
+        } catch (Exception e) {
+            logger.errorf("Error searching catalog with id %s", id, e);
+            throw new CatalogOperationException("Error searching catalog", e);
         }
     }
 
     @Override
     @Transactional
     public Catalog createCatalog(Catalog catalog) {
-        // TODO: validar la url del catalogo
-        logger.debugf("Creating a new catalog with key: %s", catalog.getKey());
-        var result = repository.save(catalog);
-        refreshCatalog(catalog.getId());
-        return result;
+        try {
+            logger.debugf("Creating a new catalog with key: %s", catalog.getKey());
+            return saveAndRefresh(catalog);
+        } catch (Exception e) {
+            logger.error("Error creating catalog", e);
+            throw new CatalogOperationException("Error creating catalog", e);
+        }
     }
 
     @Override
     @Transactional
     public Catalog updateCatalog(Catalog catalog) {
-        // TODO: validar la url del catalogo
-        logger.debugf("Updating a catalog with key: %s", catalog.getKey());
-        return repository.save(catalog);
+        try {
+            logger.debugf("Updating a catalog with key: %s", catalog.getKey());
+            return saveAndRefresh(catalog);
+        } catch (Exception e) {
+            logger.error("Error updating catalog", e);
+            throw new CatalogOperationException("Error updating catalog", e);
+        }
+    }
+
+    private Catalog saveAndRefresh(Catalog catalog) {
+        try {
+            catalog.validate();
+            Catalog result = repository.save(catalog);
+
+            try {
+                refreshCatalogSafely(catalog.getId());
+            } catch (Exception e) {
+                logger.warn("Could not schedule catalog update", e);
+            }
+
+            return result;
+        } catch (InvalidCatalogException e) {
+            logger.error("Invalid catalog data", e);
+            throw e;
+        }
     }
 
     @Override
     public void refreshCatalog(UUID id) {
+        if (id == null)
+            throw new IllegalArgumentException("ID cannot be null");
+
         logger.debugf("Set catalog to refresh with ID: %s", id);
-        catalogPublisherEvent.publishCatalogUpdateEvent(id);
+        refreshCatalogSafely(id);
     }
 
     @Override
     @Transactional
     public boolean deleteCatalog(UUID id) {
+        if (id == null)
+            throw new IllegalArgumentException("ID cannot be null");
+
         logger.debugf("Deleting catalog with ID: %s", id);
-        return repository.delete(id);
+        try {
+            return repository.delete(id);
+        } catch (CatalogNotFoundException e) {
+            logger.infof("Catalog with ID %s not found", id);
+            return false;
+        } catch (Exception e) {
+            logger.errorf("Error deleting catalog with id %s", id, e);
+            throw new CatalogOperationException("Error deleting catalog", e);
+        }
+    }
+
+    private void refreshCatalogSafely(UUID id) {
+        try {
+            catalogPublisherEvent.publishCatalogUpdateEvent(id);
+        } catch (Exception e) {
+            logger.warn("Error publishing update event", e);
+        }
     }
 }

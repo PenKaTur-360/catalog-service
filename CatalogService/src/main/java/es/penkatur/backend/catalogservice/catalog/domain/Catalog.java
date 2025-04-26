@@ -1,5 +1,6 @@
 package es.penkatur.backend.catalogservice.catalog.domain;
 
+import es.penkatur.backend.catalogservice.catalog.domain.exceptions.InvalidCatalogException;
 import es.penkatur.backend.sharedkernel.domain.UUIDBaseModel;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.NonNull;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -92,6 +94,25 @@ public class Catalog implements UUIDBaseModel {
                                     "'externalUpdatedAt' (%s)", formatter.format(externalUpdatedAt),
                             formatter.format(this.externalUpdatedAt)));
         this.externalUpdatedAt = externalUpdatedAt;
+    }
+
+    public void validate() {
+        if (url.isBlank())
+            throw new InvalidCatalogException("URL cannot be null or empty");
+
+        if (!isValidUrl(url))
+            throw new InvalidCatalogException(String.format("URL %s not valid", url));
+    }
+
+    private boolean isValidUrl(String url) {
+        try {
+            var uri = URI.create(url);
+            return uri.isAbsolute() &&
+                    uri.getScheme() != null &&
+                    uri.getAuthority() != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static class CatalogBuilder {
