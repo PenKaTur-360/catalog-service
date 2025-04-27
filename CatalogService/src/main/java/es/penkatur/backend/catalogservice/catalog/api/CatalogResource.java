@@ -47,8 +47,7 @@ public class CatalogResource implements CatalogApi {
                 throw e;
             } catch (Exception e) {
                 logger.error("Error listing catalogs", e);
-                throw new WebApplicationException("Internal error processing the request",
-                        Response.Status.INTERNAL_SERVER_ERROR);
+                throw new CatalogOperationException("Internal error processing the request", e);
             }
         });
     }
@@ -58,7 +57,7 @@ public class CatalogResource implements CatalogApi {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 if (dto == null)
-                    throw new WebApplicationException("Catalog data cannot be null", Response.Status.BAD_REQUEST);
+                    throw new InvalidCatalogException("Catalog data cannot be null");
 
                 // TODO: recuperar el usuario del contexto
                 var catalog = Catalog.builder()
@@ -69,14 +68,12 @@ public class CatalogResource implements CatalogApi {
 
                 Catalog result = service.createCatalog(catalog);
                 return result != null ? CatalogDTO.from(result) : null;
-            } catch (WebApplicationException e) {
-                throw e;
             } catch (InvalidCatalogException e) {
                 logger.warnf("Invalid catalog data: %s", e.getMessage());
-                throw new WebApplicationException(e.getMessage(), Response.Status.BAD_REQUEST);
+                throw e;
             } catch (Exception e) {
                 logger.errorf(e, "Error creating catalog with url %s: %s", dto.url(), e.getMessage());
-                throw new WebApplicationException("Error creating catalog", Response.Status.INTERNAL_SERVER_ERROR);
+                throw new CatalogOperationException("Error creating catalog", e);
             }
         });
     }
@@ -86,11 +83,14 @@ public class CatalogResource implements CatalogApi {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 if (catalogId == null)
-                    throw new WebApplicationException("Catalog ID cannot be null or empty", Response.Status.BAD_REQUEST);
+                    throw new InvalidCatalogException("Catalog ID cannot be null or empty");
 
                 Catalog catalog = service.findCatalogById(catalogId);
                 return CatalogDTO.from(catalog);
             } catch (CatalogNotFoundException e) {
+                throw e;
+            } catch (InvalidCatalogException e) {
+                logger.warnf("Invalid catalog data: %s", e.getMessage());
                 throw e;
             } catch (Exception e) {
                 logger.errorf(e, "Error listing catalog: %s", catalogId);
