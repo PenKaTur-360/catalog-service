@@ -70,7 +70,9 @@ public interface CatalogApi {
                     schema = @Schema(implementation = CatalogDTO.class, type = SchemaType.OBJECT)))
     @APIResponse(
             responseCode = "404",
-            description = "Catalog not found")
+            description = "Catalog not found",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class)))
     @APIResponse(
             responseCode = "500",
             description = "Internal server error",
