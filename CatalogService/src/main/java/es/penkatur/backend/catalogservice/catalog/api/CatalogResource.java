@@ -3,7 +3,9 @@ package es.penkatur.backend.catalogservice.catalog.api;
 import es.penkatur.backend.catalogservice.catalog.api.dto.CatalogDTO;
 import es.penkatur.backend.catalogservice.catalog.application.CatalogService;
 import es.penkatur.backend.catalogservice.catalog.domain.Catalog;
+import es.penkatur.backend.catalogservice.catalog.domain.exceptions.CatalogOperationException;
 import es.penkatur.backend.catalogservice.catalog.domain.exceptions.InvalidCatalogException;
+import es.penkatur.backend.catalogservice.catalog.infraestructure.exceptions.CatalogNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -87,18 +89,12 @@ public class CatalogResource implements CatalogApi {
                     throw new WebApplicationException("Catalog ID cannot be null or empty", Response.Status.BAD_REQUEST);
 
                 Catalog catalog = service.findCatalogById(catalogId);
-                if (catalog == null) {
-                    logger.infof("Catalog with ID %s not found", catalogId);
-                    throw new WebApplicationException("Catalog not found", Response.Status.NOT_FOUND);
-                }
-
                 return CatalogDTO.from(catalog);
-            } catch (WebApplicationException e) {
+            } catch (CatalogNotFoundException e) {
                 throw e;
             } catch (Exception e) {
                 logger.errorf(e, "Error listing catalog: %s", catalogId);
-                throw new WebApplicationException("Internal error processing the request",
-                        Response.Status.INTERNAL_SERVER_ERROR);
+                throw new CatalogOperationException("Internal error processing the request", e);
             }
         });
     }
@@ -108,32 +104,27 @@ public class CatalogResource implements CatalogApi {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 if (catalogId == null)
-                    throw new WebApplicationException("Catalog ID cannot be null or empty", Response.Status.BAD_REQUEST);
+                    throw new InvalidCatalogException("Catalog ID cannot be null or empty");
                 if (dto == null)
-                    throw new WebApplicationException("Catalog data cannot be null", Response.Status.BAD_REQUEST);
+                    throw new InvalidCatalogException("Catalog data cannot be null");
                 if (dto.catalogId() != null && !dto.catalogId().equals(catalogId))
-                    throw new WebApplicationException("The IDs not match", Response.Status.BAD_REQUEST);
+                    throw new InvalidCatalogException("The IDs not match");
 
                 Catalog catalog = service.findCatalogById(catalogId);
-                if (catalog == null) {
-                    logger.infof("Catalog with ID %s not found", catalogId);
-                    throw new WebApplicationException("Catalog not found", Response.Status.NOT_FOUND);
-                }
-
                 if (dto.name() != null) catalog.changeName(dto.name());
                 if (dto.author() != null) catalog.changeAuthor(dto.author());
                 if (dto.url() != null) catalog.changeUrl(dto.url());
 
                 Catalog result = service.updateCatalog(catalog);
                 return CatalogDTO.from(result);
-            } catch (WebApplicationException e) {
+            } catch (CatalogNotFoundException e) {
                 throw e;
             } catch (InvalidCatalogException e) {
                 logger.warnf("Invalid catalog data: %s", e.getMessage());
-                throw new WebApplicationException(e.getMessage(), Response.Status.BAD_REQUEST);
+                throw e;
             } catch (Exception e) {
                 logger.errorf(e, "Error updating catalog: %s", catalogId);
-                throw new WebApplicationException("Error processing update request", Response.Status.INTERNAL_SERVER_ERROR);
+                throw new CatalogOperationException("Error processing update request", e);
             }
         });
     }
@@ -143,20 +134,15 @@ public class CatalogResource implements CatalogApi {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 if (catalogId == null)
-                    throw new WebApplicationException("Catalog ID cannot be null or empty", Response.Status.BAD_REQUEST);
+                    throw new InvalidCatalogException("Catalog ID cannot be null or empty");
 
-                Catalog catalog = service.findCatalogById(catalogId);
-                if (catalog == null) {
-                    logger.infof("Catalog with ID %s not found", catalogId);
-                    throw new WebApplicationException("Catalog not found", Response.Status.NOT_FOUND);
-                }
-
+                service.findCatalogById(catalogId);
                 return service.deleteCatalog(catalogId);
-            } catch (WebApplicationException e) {
+            } catch (CatalogNotFoundException e) {
                 throw e;
             } catch (Exception e) {
                 logger.errorf(e, "Error deleting catalog with ID %s: %s", catalogId, e.getMessage());
-                throw new WebApplicationException("Error deleting catalog", Response.Status.INTERNAL_SERVER_ERROR);
+                throw new CatalogOperationException("Error deleting catalog", e);
             }
         });
     }
@@ -168,19 +154,14 @@ public class CatalogResource implements CatalogApi {
                 if (catalogId == null)
                     throw new WebApplicationException("Catalog ID cannot be null or empty", Response.Status.BAD_REQUEST);
 
-                Catalog catalog = service.findCatalogById(catalogId);
-                if (catalog == null) {
-                    logger.infof("Catalog with ID %s not found", catalogId);
-                    throw new WebApplicationException("Catalog not found", Response.Status.NOT_FOUND);
-                }
-
+                service.findCatalogById(catalogId);
                 service.refreshCatalog(catalogId);
                 return Response.ok().build();
-            } catch (WebApplicationException e) {
+            } catch (CatalogNotFoundException e) {
                 throw e;
             } catch (Exception e) {
                 logger.errorf(e, "Error refresh catalog with ID %s: %s", catalogId, e.getMessage());
-                throw new WebApplicationException("Error to refresh catalog", Response.Status.INTERNAL_SERVER_ERROR);
+                throw new CatalogOperationException("Error to refresh catalog", e);
             }
         });
     }

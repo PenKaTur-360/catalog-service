@@ -1,15 +1,11 @@
 package es.penkatur.backend.catalogservice.catalog.infraestructure.exceptions;
 
-import jakarta.ws.rs.NotFoundException;
+import es.penkatur.backend.catalogservice.catalog.domain.exceptions.CatalogException;
 
-import java.io.Serial;
 import java.util.UUID;
 
-public class CatalogNotFoundException extends NotFoundException {
-    @Serial
-    private static final long serialVersionUID = -8300710199080990160L;
-
+public class CatalogNotFoundException extends CatalogException {
     public CatalogNotFoundException(UUID id) {
-        super(String.format("Catalog with ID %s couldn't be found.", id.toString()));
+        super(String.format("Catalog with ID %s couldn't be found.", id.toString()), "CATALOG_NOT_FOUND");
     }
 }

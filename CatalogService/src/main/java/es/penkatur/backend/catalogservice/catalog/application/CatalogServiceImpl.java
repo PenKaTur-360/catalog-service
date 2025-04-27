@@ -6,10 +6,9 @@ import es.penkatur.backend.catalogservice.catalog.domain.events.CatalogEventPubl
 import es.penkatur.backend.catalogservice.catalog.domain.exceptions.CatalogOperationException;
 import es.penkatur.backend.catalogservice.catalog.domain.exceptions.InvalidCatalogException;
 import es.penkatur.backend.catalogservice.catalog.infraestructure.exceptions.CatalogNotFoundException;
+import es.penkatur.backend.sharedkernel.infraestructure.persistence.ContextualOperations;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
@@ -22,35 +21,36 @@ public class CatalogServiceImpl implements CatalogService {
 
     private final Logger logger;
     private final CatalogRepository repository;
+    private final ContextualOperations contextualOperations;
     private final CatalogEventPublisher catalogPublisherEvent;
 
     @Inject
-    public CatalogServiceImpl(Logger logger, CatalogRepository repository, CatalogEventPublisher catalogPublisherEvent) {
+    public CatalogServiceImpl(Logger logger, CatalogRepository repository, CatalogEventPublisher catalogPublisherEvent,
+                              ContextualOperations contextualOperations) {
         this.catalogPublisherEvent = catalogPublisherEvent;
+        this.contextualOperations = contextualOperations;
         this.repository = repository;
         this.logger = logger;
     }
 
     @Override
-    @ActivateRequestContext
     public List<Catalog> findAllCatalogsByUpdatedAtAfter(Instant updatedAt) {
         var timestamp = Optional.ofNullable(updatedAt).orElse(Instant.parse("0001-01-01T00:00:00Z"));
         logger.debugf("Find a list of catalogs from %s", timestamp.toString());
-        return repository.findAllByUpdatedAtAfter(timestamp);
+        return contextualOperations.executeInSession(() -> repository.findAllByUpdatedAtAfter(timestamp));
     }
 
     @Override
-    @ActivateRequestContext
     public Catalog findCatalogById(UUID id) {
         if (id == null)
             throw new IllegalArgumentException("ID cannot be null");
 
         logger.debugf("Searching for catalog with ID: %s", id);
         try {
-            return repository.findById(id);
+            return contextualOperations.executeInSession(() -> repository.findById(id));
         } catch (CatalogNotFoundException e) {
             logger.infof("Catalog with ID %s not found", id);
-            return null;
+            throw e;
         } catch (Exception e) {
             logger.errorf("Error searching catalog with id %s", id, e);
             throw new CatalogOperationException("Error searching catalog", e);
@@ -58,7 +58,6 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    @Transactional
     public Catalog createCatalog(Catalog catalog) {
         try {
             logger.debugf("Creating a new catalog with key: %s", catalog.getKey());
@@ -70,7 +69,6 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    @Transactional
     public Catalog updateCatalog(Catalog catalog) {
         try {
             logger.debugf("Updating a catalog with key: %s", catalog.getKey());
@@ -84,7 +82,7 @@ public class CatalogServiceImpl implements CatalogService {
     private Catalog saveAndRefresh(Catalog catalog) {
         try {
             catalog.validate();
-            Catalog result = repository.save(catalog);
+            Catalog result = contextualOperations.executeInTransaction(() -> repository.save(catalog));
 
             try {
                 refreshCatalogSafely(catalog.getId());
@@ -109,17 +107,16 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    @Transactional
     public boolean deleteCatalog(UUID id) {
         if (id == null)
             throw new IllegalArgumentException("ID cannot be null");
 
         logger.debugf("Deleting catalog with ID: %s", id);
         try {
-            return repository.delete(id);
+            return contextualOperations.executeInTransaction(() -> repository.delete(id));
         } catch (CatalogNotFoundException e) {
             logger.infof("Catalog with ID %s not found", id);
-            return false;
+            throw e;
         } catch (Exception e) {
             logger.errorf("Error deleting catalog with id %s", id, e);
             throw new CatalogOperationException("Error deleting catalog", e);
