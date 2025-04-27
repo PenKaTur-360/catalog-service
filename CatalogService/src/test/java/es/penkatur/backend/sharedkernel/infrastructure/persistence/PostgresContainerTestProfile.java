@@ -19,10 +19,15 @@ public class PostgresContainerTestProfile implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
         return Map.of(
-                "quarkus.datasource.jdbc.url", "jdbc:postgresql://" + POSTGRESQL.getHost() + ":" + POSTGRESQL.getFirstMappedPort() + "/" + POSTGRESQL.getDatabaseName(),
+                "quarkus.liquibase.migrate-at-start", "true",
                 "quarkus.datasource.username", POSTGRESQL.getUsername(),
                 "quarkus.datasource.password", POSTGRESQL.getPassword(),
-                "quarkus.hibernate-orm.database.generation", "drop-and-create"
+                "quarkus.hibernate-orm.database.generation", "drop-and-create",
+                "quarkus.datasource.jdbc.url",
+                    "jdbc:postgresql://"
+                            + POSTGRESQL.getHost() + ":"
+                            + POSTGRESQL.getFirstMappedPort() + "/"
+                            + POSTGRESQL.getDatabaseName()
         );
     }
 }
